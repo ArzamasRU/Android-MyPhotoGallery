@@ -61,13 +61,13 @@ public class GalleryActivity extends AppCompatActivity implements MyActions{
 
         if (savedInstanceState == null && !prefContains) {
             arrImages = getAllImagesByFolder(
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString(),
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).toString(),
                     null);
         } else if (savedInstanceState != null) {
            arrImages = (ArrayList<String>) savedInstanceState.getSerializable("IMAGES");
        } else {
             arrImages = getAllImagesByFolder(
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString(),
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).toString(),
                     myPref.getStringSet("IMAGES" + strPid, null));
         }
 
