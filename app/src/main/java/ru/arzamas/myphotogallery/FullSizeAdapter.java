@@ -78,7 +78,7 @@ class FullSizeAdapter extends PagerAdapter {
 //
 //            @Override
 //            public void onPageScrollStateChanged(int state) {
-//                Log.d("!!!!!!!!!!! SetNextItem", Integer.toString(viewPager.getCurrentItem())
+//                Log.d("!!!!!!!!!!!", Integer.toString(viewPager.getCurrentItem())
 //                        + " " + Integer.toString(state));
 //                if (state == ViewPager.SCROLL_STATE_IDLE && state != ViewPager.SCROLL_STATE_SETTLING) {
 ////                        if (state != ViewPager.SCROLL_STATE_IDLE) {

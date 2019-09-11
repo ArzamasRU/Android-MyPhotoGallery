@@ -19,6 +19,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import java.util.ArrayList;
@@ -27,7 +28,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class GalleryActivity extends AppCompatActivity implements MyActions{
-
+    // TODO: 11.09.2019 написать в письмо новые номера интересующих строк
+    // TODO: 11.09.2019 комментарии
+    // TODO: 11.09.2019 проверить на api 28 
+    // TODO: 11.09.2019 сделать отдельную ветку на гитхабе
     private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 1;
     private ArrayList<String> arrImages;
     private String strPid;
@@ -60,12 +64,15 @@ public class GalleryActivity extends AppCompatActivity implements MyActions{
         boolean prefContains = myPref.contains("IMAGES"+ strPid);
 
         if (savedInstanceState == null && !prefContains) {
+            Log.d("!!!!!!!!!!!", " (savedInstanceState == null && !prefContains)");
             arrImages = getAllImagesByFolder(
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).toString(),
                     null);
         } else if (savedInstanceState != null) {
+            Log.d("!!!!!!!!!!!", " else if (savedInstanceState != null)");
            arrImages = (ArrayList<String>) savedInstanceState.getSerializable("IMAGES");
        } else {
+            Log.d("!!!!!!!!!!!", " else ");
             arrImages = getAllImagesByFolder(
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).toString(),
                     myPref.getStringSet("IMAGES" + strPid, null));
