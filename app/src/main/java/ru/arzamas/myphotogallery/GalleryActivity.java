@@ -3,15 +3,11 @@ package ru.arzamas.myphotogallery;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.Manifest;
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -19,7 +15,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import java.util.ArrayList;
@@ -28,10 +23,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class GalleryActivity extends AppCompatActivity implements MyActions{
-    // TODO: 11.09.2019 написать в письмо новые номера интересующих строк
-    // TODO: 11.09.2019 комментарии
-    // TODO: 11.09.2019 проверить на api 28 
-    // TODO: 11.09.2019 сделать отдельную ветку на гитхабе
     private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 1;
     private ArrayList<String> arrImages;
     private String strPid;
@@ -41,7 +32,7 @@ public class GalleryActivity extends AppCompatActivity implements MyActions{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-//        check permission
+        /*check permission*/
         if (ContextCompat.checkSelfPermission(GalleryActivity.this,
                 Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(GalleryActivity.this,
@@ -55,28 +46,25 @@ public class GalleryActivity extends AppCompatActivity implements MyActions{
         setContentView(R.layout.activity_main);
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
         RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, 3);
-//        It will allow RecyclerView to avoid invalidating the whole layout when its adapter contents change.
+        /*It will allow RecyclerView to avoid invalidating the whole layout when its adapter contents change.*/
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(layoutManager);
-        LocalBroadcastManager.getInstance(this).registerReceiver(messageReceiver,
-                new IntentFilter("closeFullScreen"));
 
-        boolean prefContains = myPref.contains("IMAGES"+ strPid);
-
-        if (savedInstanceState == null && !prefContains) {
-            Log.d("!!!!!!!!!!!", " (savedInstanceState == null && !prefContains)");
+        if (savedInstanceState == null && !myPref.contains("IMAGES"+ strPid)) {
+            /*get images from storage without checking preferences*/
             arrImages = getAllImagesByFolder(
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).toString(),
                     null);
         } else if (savedInstanceState != null) {
-            Log.d("!!!!!!!!!!!", " else if (savedInstanceState != null)");
-           arrImages = (ArrayList<String>) savedInstanceState.getSerializable("IMAGES");
+            /*recover image list after recreating activity*/
+            arrImages = (ArrayList<String>) savedInstanceState.getSerializable("IMAGES");
        } else {
-            Log.d("!!!!!!!!!!!", " else ");
+            /*get images from storage with checking preferences*/
             arrImages = getAllImagesByFolder(
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).toString(),
                     myPref.getStringSet("IMAGES" + strPid, null));
         }
+
 
         myPref.edit().clear().apply();
 
@@ -86,11 +74,10 @@ public class GalleryActivity extends AppCompatActivity implements MyActions{
         }
 
         IRecyclerViewListener listener = (view, position) -> {
-            // open full screen activity
+            /*open full screen activity*/
             Intent intentI = new Intent(getApplicationContext(), FullScreenActivity.class);
             intentI.putExtra("IMAGES", arrImages);
             intentI.putExtra("POSITION", position);
-//            startActivity(i);
             startActivityForResult(intentI,999);
         };
 
@@ -98,6 +85,7 @@ public class GalleryActivity extends AppCompatActivity implements MyActions{
         recyclerView.setAdapter(galleryImageAdapter);
     }
 
+    /*get images from folder*/
     public ArrayList<String> getAllImagesByFolder(String path, Set<String> revisedSet){
         ArrayList<String> list = new ArrayList<>();
         String tempStr;
@@ -126,45 +114,36 @@ public class GalleryActivity extends AppCompatActivity implements MyActions{
         return list;
     }
 
-    public BroadcastReceiver messageReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            ArrayList<String> oldArrImages = arrImages;
-            arrImages = (ArrayList<String>) intent.getSerializableExtra("IMAGES");
-            if (oldArrImages != null && !oldArrImages.equals(arrImages)) {
-                Intent intentB = new Intent();
-                intentB.putExtra("IMAGES", arrImages);
-                GalleryActivity.this.setResult(Activity.RESULT_OK,intentB);
-                GalleryActivity.this.recreate();
-            }
-        }
-    };
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 999 && resultCode == RESULT_OK) {
             if (data.getIntExtra("ACTION", 0) == RECREATE_MAIN_ACTIVITY) {
+                /*need recreate activity*/
+                ArrayList<String> oldArrImages = arrImages;
                 arrImages = (ArrayList<String>) data.getSerializableExtra("IMAGES");
-                recreate();
+                if (oldArrImages != null && !oldArrImages.equals(arrImages)) {
+                    recreate();
+                }
             } else if (data.getIntExtra("ACTION", 0) == FINISH_MAIN_ACTIVITY) {
+                /*need put activity on background*/
                 arrImages = (ArrayList<String>) data.getSerializableExtra("IMAGES");
-                finish();
+                onBackPressed();
             }
         }
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
         outState.putSerializable("IMAGES", arrImages);
+        super.onSaveInstanceState(outState);
     }
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
+        /*save condition of gallery after closing*/
         Set<String> revisedSet = new HashSet<>(arrImages);
         myPref.edit().putStringSet("IMAGES" + strPid, revisedSet).apply();
+        super.onDestroy();
     }
-
 }

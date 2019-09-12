@@ -1,6 +1,5 @@
 package ru.arzamas.myphotogallery;
 
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.viewpager.widget.ViewPager;
 
 import android.app.Activity;
@@ -13,6 +12,7 @@ public class FullScreenActivity extends Activity implements MyActions{
 
     private int position;
     private ArrayList<String> arrImages;
+    protected int currAction = FullScreenActivity.RECREATE_MAIN_ACTIVITY;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,20 +20,18 @@ public class FullScreenActivity extends Activity implements MyActions{
         setContentView(R.layout.activity_full_screen);
 
         if (savedInstanceState==null){
+            /*after selecting the photo in the main activity */
             Intent intent = getIntent();
             arrImages = (ArrayList<String>) intent.getSerializableExtra("IMAGES");
             position = intent.getIntExtra("POSITION",0);
         } else {
+            /*after recreating*/
             arrImages = (ArrayList<String>) savedInstanceState.getSerializable("IMAGES");
         }
 
         if (arrImages == null || arrImages.isEmpty()) {
-            Intent intentE = new Intent();
-            intentE.putExtra("IMAGES", arrImages);
-            intentE.putExtra("ACTION", RECREATE_MAIN_ACTIVITY);
-            setResult(Activity.RESULT_OK,intentE);
-            finish();
-            //            notifyCloseFullScreen();
+            /*if all images have been deleted*/
+            onBackPressed();
         }
 
         ViewPager viewPager = findViewById(R.id.viewPager);
@@ -50,13 +48,10 @@ public class FullScreenActivity extends Activity implements MyActions{
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-        notifyCloseFullScreen();
-    }
-
-    private void notifyCloseFullScreen(){
-        Intent intent = new Intent("closeFullScreen");
+        Intent intent = new Intent();
         intent.putExtra("IMAGES", arrImages);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        intent.putExtra("ACTION", currAction);
+        setResult(Activity.RESULT_OK,intent);
+        super.onBackPressed();
     }
 }

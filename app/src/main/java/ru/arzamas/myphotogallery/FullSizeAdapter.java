@@ -1,8 +1,6 @@
 package ru.arzamas.myphotogallery;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,15 +42,17 @@ class FullSizeAdapter extends PagerAdapter {
         ImageView imageView = viewAdapter.findViewById(R.id.fullImageView);
         ViewPager viewPager = (ViewPager) container;
 
-        Activity currActivity = ((FullScreenActivity) context);
+        FullScreenActivity currActivity = ((FullScreenActivity) context);
+
+        Button buttonExit = viewAdapter.findViewById(R.id.exit);
+        buttonExit.setOnClickListener(view -> {
+            currActivity.currAction = FullScreenActivity.FINISH_MAIN_ACTIVITY;
+            currActivity.onBackPressed();
+        });
 
         Button buttonBack = viewAdapter.findViewById(R.id.back);
         buttonBack.setOnClickListener(view -> {
-            Intent intent = new Intent();
-            intent.putExtra("IMAGES", arrImages);
-            intent.putExtra("ACTION", FullScreenActivity.FINISH_MAIN_ACTIVITY);
-            currActivity.setResult(Activity.RESULT_OK,intent);
-            currActivity.finish();
+            currActivity.onBackPressed();
         });
 
         Button buttonDelete = viewAdapter.findViewById(R.id.delete);
